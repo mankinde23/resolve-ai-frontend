@@ -1,3 +1,126 @@
+# Resolve AI — Frontend
+
+Resolve AI is an AI-powered support-ticket classification and triage application. This repository contains the React and TypeScript web client.
+
+## Phase One capabilities
+
+- Submit a support-ticket description for classification.
+- Display the predicted category, model version, and confidence score returned by the API.
+- Save classified tickets through the backend.
+- Browse persisted ticket history with pagination.
+- Open a ticket detail page.
+- Validate form input and present loading, empty, and error states.
+
+## Architecture
+
+The frontend communicates with the Node.js API; it does not call the Python ML service or PostgreSQL directly.
+
+```text
+React + TypeScript
+       |
+       | HTTP / JSON
+       v
+Node.js + Express API
+       |
+       +----> Python FastAPI ML service
+       |
+       +----> PostgreSQL via Prisma
+```
+
+## Technology
+
+- React and TypeScript
+- Vite
+- React Router
+- TanStack Query for server state and mutations
+- Axios for HTTP requests
+- React Hook Form and Zod for form validation
+- Tailwind CSS and shadcn/ui components
+
+## Requirements
+
+- A supported Node.js LTS release
+- npm
+- The Resolve AI backend running locally
+
+## Local setup
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Create `.env` in this repository:
+
+   ```dotenv
+   VITE_API_BASE_URL=http://localhost:3000/api/v1
+   ```
+
+3. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open the local URL printed by Vite.
+
+## Build verification
+
+```bash
+npm run build
+```
+
+## API configuration
+
+The frontend expects the backend to expose these endpoints under `VITE_API_BASE_URL`:
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `POST` | `/predictions` | Run a prediction without saving a ticket |
+| `POST` | `/tickets` | Classify and persist a ticket |
+| `GET` | `/tickets?limit=10&offset=0` | List saved tickets |
+| `GET` | `/tickets/:id` | Retrieve a saved ticket |
+
+## Project structure
+
+```text
+src/
+  components/
+    layout/
+    ui/
+  features/
+    predictions/
+      components/
+      prediction.schema.ts
+    tickets/
+      components/
+  hooks/
+  lib/
+    api.ts
+    query-client.ts
+  pages/
+    PredictionPage.tsx
+    TicketDetailPage.tsx
+  services/
+    predictions.service.ts
+    tickets.service.ts
+  types/
+    prediction.types.ts
+    ticket.types.ts
+```
+
+## Important notes
+
+- The confidence score is the model's reported score, not a guarantee that the prediction is correct.
+- This repository is intended for local Phase One demonstration. Public deployment is planned for a later phase.
+
+## Phase One scope
+
+Phase One establishes the end-to-end application workflow. Future work may include improved model evaluation, richer ticket workflows, authentication and authorization, monitoring, and deployment.
+
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

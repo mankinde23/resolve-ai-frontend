@@ -1,13 +1,18 @@
-import {apiRequest} from '../lib/api';
+import {api} from '@/lib/api';
 import type {
   PredictionRequest,
   PredictionResponse,
-} from '../types/prediction.types';
+} from '@/types/prediction.types';
 
 export const predictionsService = {
-  classify: (payload: PredictionRequest) =>
-    apiRequest<PredictionResponse>('/predictions', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    }),
+  classify: async (
+    payload: PredictionRequest
+  ): Promise<PredictionResponse> => {
+    const response = await api.post<PredictionResponse>(
+      '/predictions',
+      payload
+    );
+
+    return response.data;
+  },
 };
