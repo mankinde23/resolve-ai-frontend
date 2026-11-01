@@ -1,6 +1,6 @@
+import React from 'react';
 import {Link} from 'react-router-dom';
 import {useTickets} from '@/hooks/useTickets';
-import React from 'react';
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString();
@@ -13,9 +13,7 @@ export function TicketHistory() {
 
   if (ticketsQuery.isPending) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Loading ticket history...
-      </p>
+      <p className="text-sm text-muted-foreground">Loading tickets...</p>
     );
   }
 
@@ -39,42 +37,83 @@ export function TicketHistory() {
   const result = ticketsQuery.data.data;
 
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold">Recent tickets</h2>
-        <p className="text-sm text-muted-foreground">
-          {result.pagination.total} saved ticket(s)
-        </p>
+    <section className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold">Ticket history</h2>
+          <p className="text-sm text-muted-foreground">
+            {result.pagination.total} saved ticket(s)
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className="text-sm underline"
+          disabled={ticketsQuery.isFetching}
+          onClick={() => void ticketsQuery.refetch()}
+        >
+          Refresh
+        </button>
       </div>
 
       {result.items.length === 0 ? (
-        <p className="rounded-lg border p-6 text-sm text-muted-foreground">
-          No tickets yet. Classify and save your first support ticket
-          above.
-        </p>
+        <div className="rounded-lg border p-8 text-center">
+          <p className="font-medium">No tickets yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Submit your first support ticket to see it here.
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
           {result.items.map(ticket => (
             <article
               key={ticket.id}
-              className="space-y-2 rounded-lg border p-4"
+              className="space-y-3 rounded-lg border p-4 transition-colors hover:bg-muted/30"
             >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <h3 className="font-medium">{ticket.predictedCategory}</h3>
-                <time className="text-xs text-muted-foreground">
-                  {formatDate(ticket.createdAt)}
-                </time>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-semibold">
+                    {ticket.predictedCategory}
+                  </h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {formatDate(ticket.createdAt)}
+                  </p>
+                </div>
+
+                <span className="rounded-md bg-muted px-2 py-1 text-xs font-medium capitalize">
+                  {ticket.severity} severity
+                </span>
               </div>
 
-              <p className="whitespace-pre-wrap break-words text-sm">
+              <p className="whitespace-pre-wrap break-words text-sm text-muted-foreground">
                 {ticket.text}
               </p>
 
-              <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="rounded-md border px-2 py-1 capitalize">
+                  {ticket.priority} priority
+                </span>
+
+                <span className="rounded-md border px-2 py-1">
+                  {ticket.action.replace(/_/g, ' ')}
+                </span>
+
+                {ticket.requiresHumanReview && (
+                  <span className="rounded-md border border-amber-500/50 px-2 py-1 text-amber-600">
+                    Human review
+                  </span>
+                )}
+
+                {ticket.needsMoreInformation && (
+                  <span className="rounded-md border px-2 py-1">
+                    More information needed
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
                 <p className="text-xs text-muted-foreground">
-                  Model: {ticket.modelVersion}
-                  {' · '}
-                  Confidence:{' '}
+                  Model confidence:{' '}
                   {ticket.confidence == null
                     ? 'N/A'
                     : `${(ticket.confidence * 100).toFixed(1)}%`}

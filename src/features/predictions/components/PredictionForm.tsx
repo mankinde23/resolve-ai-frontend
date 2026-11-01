@@ -9,17 +9,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {Textarea} from '@/components/ui/textarea';
-// import {usePrediction} from '@/hooks/usePrediction';
+import {useCreateTicket} from '@/hooks/useCreateTicket';
 import {getApiErrorMessage} from '@/lib/api';
 import {
   predictionFormSchema,
   type PredictionFormValues,
 } from '../prediction.schema';
-import { useCreateTicket } from '@/hooks/useCreateTicket';
 
 export function PredictionForm() {
-  // const prediction = usePrediction();
-const ticketMutation = useCreateTicket();
+  const ticketMutation = useCreateTicket();
+
   const {
     register,
     handleSubmit,
@@ -32,16 +31,19 @@ const ticketMutation = useCreateTicket();
   });
 
   const text = watch('text');
-const onSubmit = (values: PredictionFormValues) => {
-  ticketMutation.mutate({text: values.text});
-};
+
+  const onSubmit = (values: PredictionFormValues) => {
+    ticketMutation.mutate({text: values.text});
+  };
+
+  const ticket = ticketMutation.data?.data;
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Classify a support ticket</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Enter a customer issue and let Resolve AI predict its category.
+          Submit a customer issue for automated classification and triage.
         </p>
       </CardHeader>
 
@@ -54,8 +56,8 @@ const onSubmit = (values: PredictionFormValues) => {
 
             <Textarea
               id="ticket-text"
-              placeholder="Example: I cannot reset my account password..."
-              rows={6}
+              placeholder="Example: Payment processing is down. Customers cannot complete purchases..."
+              rows={7}
               maxLength={10_000}
               aria-invalid={Boolean(errors.text)}
               aria-describedby={
@@ -82,45 +84,88 @@ const onSubmit = (values: PredictionFormValues) => {
             )}
           </div>
 
-          {/* {prediction.isError && (
-            <p role="alert" className="text-sm text-destructive">
-              {getApiErrorMessage(prediction.error)}
-            </p>
-          )} */}
-
           {ticketMutation.isError && (
             <p role="alert" className="text-sm text-destructive">
               {getApiErrorMessage(ticketMutation.error)}
             </p>
           )}
 
-          {ticketMutation.isSuccess && (
-            <div
-              className="space-y-2 rounded-lg border p-4"
+          {ticket && (
+            <section
+              className="space-y-4 rounded-lg border p-4"
               aria-live="polite"
             >
-              <p className="text-sm text-muted-foreground">
-                Ticket saved successfully
-              </p>
+              <div>
+                <p className="text-sm font-medium text-emerald-600">
+                  Ticket successfully classified and saved
+                </p>
+                <h3 className="mt-1 text-xl font-bold">
+                  {ticket.predictedCategory}
+                </h3>
+              </div>
 
-              <p className="text-sm text-muted-foreground">
-                Predicted category
-              </p>
-              <p className="text-2xl font-semibold">
-                {ticketMutation.data.data.predictedCategory}
-              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">Severity</p>
+                  <p className="font-semibold capitalize">
+                    {ticket.severity}
+                  </p>
+                </div>
 
-              <p className="text-sm text-muted-foreground">
-                Model: {ticketMutation.data.data.modelVersion}
-              </p>
+                <div>
+                  <p className="text-xs text-muted-foreground">Priority</p>
+                  <p className="font-semibold capitalize">
+                    {ticket.priority}
+                  </p>
+                </div>
 
-              <p className="text-sm text-muted-foreground">
-                Confidence:{' '}
-                {ticketMutation.data.data.confidence == null
-                  ? 'Not provided'
-                  : `${(ticketMutation.data.data.confidence * 100).toFixed(1)}%`}
+                <div>
+                  <p className="text-xs text-muted-foreground">Action</p>
+                  <p className="font-semibold capitalize">
+                    {ticket.action.replace(/_/g, ' ')}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Confidence
+                  </p>
+                  <p className="font-semibold">
+                    {ticket.confidence == null
+                      ? 'Not provided'
+                      : `${(ticket.confidence * 100).toFixed(1)}%`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-md bg-muted p-3 space-y-2">
+                <p className="text-sm font-medium">
+                  {ticket.requiresHumanReview
+                    ? 'Human review required'
+                    : 'No human review flagged'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {ticket.reason}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Severity assessment</p>
+                <p className="text-sm text-muted-foreground">
+                  {ticket.severityReason}
+                </p>
+              </div>
+
+              {ticket.needsMoreInformation && (
+                <p className="text-sm text-amber-600">
+                  Additional information is required for this ticket.
+                </p>
+              )}
+
+              <p className="text-xs text-muted-foreground">
+                Model: {ticket.modelVersion}
               </p>
-            </div>
+            </section>
           )}
 
           <div className="flex flex-wrap gap-2">

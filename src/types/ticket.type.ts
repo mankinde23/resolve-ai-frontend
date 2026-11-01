@@ -1,9 +1,18 @@
+import type {TriageAction, TicketSeverity} from './prediction.types';
+
 export interface Ticket {
   id: string;
   text: string;
   predictedCategory: string;
   modelVersion: string;
   confidence: number | null;
+  action: TriageAction;
+  priority: 'normal' | 'high';
+  requiresHumanReview: boolean;
+  reason: string;
+  severity: TicketSeverity;
+  severityReason: string;
+  needsMoreInformation: boolean;
   createdAt: string;
 }
 
